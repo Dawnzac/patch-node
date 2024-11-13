@@ -3,9 +3,12 @@ Description=System Reporting Agent
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 /opt/patchnode/agent.py
+ExecStart=/usr/bin/python3 /opt/patchnode/agent.py --server $SERVER_URL --token $AUTH_TOKEN
 Restart=always
 RestartSec=10
+User=patchnode
+Environment=SERVER_URL=$SERVER_URL
+Environment=AUTH_TOKEN=$AUTH_TOKEN
 
 [Install]
 WantedBy=multi-user.target
