@@ -6,11 +6,10 @@ app = Flask(__name__)
 
 
 logging.basicConfig(filename='agent_reports.log', level=logging.INFO, format='%(asctime)s - %(message)s')
-# A simple in-memory storage for reports and commands
+# in-memory storage for reports and commands testing
 reports = {}
 commands = ["echo 'Hello, Agent!'", "uptime"]
 
-# A basic authentication token (replace with a secure mechanism)
 AUTH_TOKEN = "your_secure_token"
 
 def is_authorized(request):
@@ -26,7 +25,7 @@ def report_status():
     if not data:
         return jsonify({"error": "Invalid JSON"}), 400
     
-    print(f"Received data: {data}")  # Debugging line to check the incoming data
+    print(f"Received data: {data}")  # Debugging
 
     hostname = data.get("hostname")
     if hostname:
@@ -61,7 +60,6 @@ def get_reports():
     if not is_authorized(request):
         return jsonify({"error": "Unauthorized"}), 403
 
-    # Return all reports stored in the `reports` dictionary
     return jsonify(reports), 200
 
 if __name__ == '__main__':
