@@ -1,6 +1,13 @@
 from flask import Flask, request,send_file, jsonify
 from datetime import datetime
 import logging
+import socket
+
+hostname = socket.gethostname()
+IPAddr = socket.gethostbyname(hostname)
+
+print("\nServer Name :  " + hostname)
+print("Server IP Address :  " + IPAddr + "\n")
 
 app = Flask(__name__)
 
@@ -8,7 +15,7 @@ app = Flask(__name__)
 logging.basicConfig(filename='agent_reports.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 # in-memory storage for reports and commands testing
 reports = {}
-commands = ["echo 'Hello, Agent!'", "uptime"]
+commands = ["echo 'Hello, Agent!'", "ls /tmp"]
 
 AUTH_TOKEN = "secure_token"
 
@@ -16,16 +23,95 @@ def is_authorized(request):
     token = request.headers.get("Authorization")
     return token == f"Bearer {AUTH_TOKEN}"
 
+# @app.route('/install.sh', methods=['GET'])
+# def serve_install_script():
+#     """Serves the agent installation script."""
+#     try:
+#         script_path = "install.sh"
+#         return send_file(script_path, as_attachment=False), 200
+#     except Exception as e:
+#         return jsonify({"error": f"Failed to serve the install script: {str(e)}"}), 500
+
+
 @app.route('/install.sh', methods=['GET'])
 def serve_install_script():
+    """Generates and serves the agent installation script dynamically."""
+    install_script = f"""#!/bin/bash
+
+        #set -e
+        echo "Starting agent installation..."
+
+        AGENT_DIR="/opt/patchnode"
+        AGENT_SCRIPT="agent.py"
+        SERVICE_FILE="/etc/systemd/system/agent.service"
+        SERVER_URL="https://{IPAddr}:5000"  
+        AUTH_TOKEN="secure_token"           
+        AGENT_URL="$SERVER_URL/$AGENT_SCRIPT"
+
+        # Check if the script is being run as root
+        if [ "$EUID" -ne 0 ]; then
+            echo "Please run as root"
+        exit 1
+        fi
+
+        if [ ! -d "$AGENT_DIR" ]; then
+            mkdir -p "$AGENT_DIR"
+            echo "Created directory $AGENT_DIR."
+        fi
+
+        curl -s -k -o "$AGENT_DIR/$AGENT_SCRIPT" "$AGENT_URL"
+        #chmod +x "$AGENT_DIR/$AGENT_SCRIPT"
+        echo "Downloaded and set up $AGENT_SCRIPT."
+
+        # Install dependencies
+        echo "Installing dependencies..."
+        #apt update
+        #apt install -y python3 python3-pip
+
+        pip3 install requests psutil --quiet
+
+        # Create systemd service file
+        echo "Creating systemd service..."
+        
+cat << EOF > $SERVICE_FILE
+[Unit]
+Description=Patchnode Agent
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 $AGENT_DIR/$AGENT_SCRIPT --server $SERVER_URL --token $AUTH_TOKEN
+Restart=always
+User=root
+Environment=SERVER_URL=$SERVER_URL
+Environment=AUTH_TOKEN=$AUTH_TOKEN
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+        # Reload systemd, start and enable the service
+        echo "Enabling and starting the agent service..."
+        systemctl daemon-reload
+        systemctl start agent
+        systemctl enable agent
+
+        # Check service status
+        echo "Agent installation complete. Checking service status..."
+        systemctl status agent
+    """
+    return install_script, 200, {"Content-Type": "text/plain"}
+
+
+
+@app.route('/uninstall.sh', methods=['GET'])
+def serve_uninstall_script():
     """Serves the agent installation script."""
     try:
-        script_path = "install.sh"
+        script_path = "uninstall.sh"
         return send_file(script_path, as_attachment=False), 200
     except Exception as e:
-        return jsonify({"error": f"Failed to serve the install script: {str(e)}"}), 500
-
-
+        return jsonify({"error": f"Failed to serve the uninstall script: {str(e)}"}), 500
+    
 @app.route('/agent.py', methods=['GET'])
 def serve_agent_script():
     """Serves the agent File."""

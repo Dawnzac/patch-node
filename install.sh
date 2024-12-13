@@ -22,7 +22,7 @@ if [ ! -d "$AGENT_DIR" ]; then
 fi
 
 curl -s -k -o "$AGENT_DIR/$AGENT_SCRIPT" "$AGENT_URL"
-chmod +x "$AGENT_DIR/$AGENT_SCRIPT"
+#chmod +x "$AGENT_DIR/$AGENT_SCRIPT"
 echo "Downloaded and set up $AGENT_SCRIPT."
 
 # Install dependencies
