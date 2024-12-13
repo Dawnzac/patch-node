@@ -12,7 +12,7 @@ from datetime import datetime
 # logging
 
 logging.basicConfig(filename='/var/log/agent.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
+logging.basicConfig(filename='/var/log/agent-error.log', level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def get_system_info():
     """Collects system information to send to the server."""
@@ -119,7 +119,7 @@ if __name__ == "__main__":
     parser = ArgumentParser(description="Agent script to send system reports to a server.")
     parser.add_argument("--server", required=True, help="The server URL to send reports to.")
     parser.add_argument("--token", required=True, help="The authentication token for server access.")
-    parser.add_argument("--interval", type=int, default=10, help="Report interval in seconds (default: 600s).")
+    parser.add_argument("--interval", type=int, default=30, help="Report interval in seconds (default: 600s).")
 
     args = parser.parse_args()
 
