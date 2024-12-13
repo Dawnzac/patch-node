@@ -28,7 +28,7 @@ def is_authorized(request):
 
 # @app.route('/install.sh', methods=['GET'])
 # def serve_install_script():
-#     """Serves the agent installation script."""
+#     """Serves the static agent installation script."""
 #     try:
 #         script_path = "install.sh"
 #         return send_file(script_path, as_attachment=False), 200
