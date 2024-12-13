@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request,send_file, jsonify
 from datetime import datetime
 import logging
 
@@ -15,6 +15,28 @@ AUTH_TOKEN = "your_secure_token"
 def is_authorized(request):
     token = request.headers.get("Authorization")
     return token == f"Bearer {AUTH_TOKEN}"
+
+@app.route('/install.sh', methods=['GET'])
+def serve_install_script():
+    """Serves the agent installation script."""
+    try:
+        script_path = "install.sh"
+        return send_file(script_path, as_attachment=False), 200
+    except Exception as e:
+        return jsonify({"error": f"Failed to serve the install script: {str(e)}"}), 500
+
+@app.route('/agent.py', methods=['GET'])
+def serve_agent_script():
+    """Serves the agent File."""
+    try:
+        script_path = "client/agent.py"
+        return send_file(script_path, as_attachment=False), 200
+    except Exception as e:
+        return jsonify({"error": f"Failed to serve the agent script: {str(e)}"}), 500
+    
+def index():
+    """Basic server status check."""
+    return jsonify({"message": "Server is running."}), 200
 
 @app.route('/api/report', methods=['POST'])
 def report_status():
