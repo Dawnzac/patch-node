@@ -5,12 +5,12 @@ import logging
 app = Flask(__name__)
 
 
-logging.basicConfig(filename='agent_reports.log', level=logging.INFO, format='%(asctime)s - %(message)s')
+logging.basicConfig(filename='agent_reports.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 # in-memory storage for reports and commands testing
 reports = {}
 commands = ["echo 'Hello, Agent!'", "uptime"]
 
-AUTH_TOKEN = "your_secure_token"
+AUTH_TOKEN = "secure_token"
 
 def is_authorized(request):
     token = request.headers.get("Authorization")
@@ -24,6 +24,7 @@ def serve_install_script():
         return send_file(script_path, as_attachment=False), 200
     except Exception as e:
         return jsonify({"error": f"Failed to serve the install script: {str(e)}"}), 500
+
 
 @app.route('/agent.py', methods=['GET'])
 def serve_agent_script():
@@ -48,7 +49,7 @@ def report_status():
         return jsonify({"error": "Invalid JSON"}), 400
     
     print(f"Received data: {data}")  # Debugging
-
+    logging.info(f"Report received from host: {request.remote_addr}, Data: {data}")
     hostname = data.get("hostname")
     if hostname:
         reports[hostname] = {
@@ -80,7 +81,8 @@ def add_command():
 @app.route('/api/reports', methods=['GET'])
 def get_reports():
     if not is_authorized(request):
-        return jsonify({"error": "Unauthorized"}), 403
+        logging.warning(f"Invalid token from host: {request.remote_addr}, Token: {AUTH_TOKEN}")
+        return jsonify({"error": "Unauthorized"}), 403  
 
     return jsonify(reports), 200
 
