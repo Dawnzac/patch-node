@@ -25,7 +25,7 @@ jobs:
 
     - name: Run Script to Fetch Winget Manifests
       run: |
-        python script.py
+        python Scripts/download_manifest4.py
 
     - name: Commit and Push Changes
       if: success()
