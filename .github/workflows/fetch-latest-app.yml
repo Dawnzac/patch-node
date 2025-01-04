@@ -1,76 +1,37 @@
-name: Fetch Latest Winget Apps
+name: Download Winget Manifests
 
 on:
-  workflow_dispatch: # Allows manual triggering
+  workflow_dispatch: # Allows manual trigger
   schedule:
-    - cron: "0 3 * * *" # Runs daily at 3 AM UTC (adjust as needed)
+    - cron: "0 0 * * *" # Runs daily at midnight UTC
 
 jobs:
-  fetch-latest-apps:
-    runs-on: ubuntu-latest
+  fetch-manifests:
+    runs-on: windows-latest
 
     steps:
-      - name: Checkout Defatom Repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    - name: Checkout Repository
+      uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.9"
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10' # Specify the Python version
 
-      - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install gitpython
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests pyyaml
 
-      - name: Clone Winget Community Repository
-        run: |
-          git clone --depth 1 https://github.com/microsoft/winget-pkgs.git winget-pkgs
+    - name: Run Script to Fetch Winget Manifests
+      run: |
+        python Scripts/download_manifest4.py
 
-      - name: Fetch Latest Apps
-        env:
-          APPS: "Google.Chrome Mozilla.Firefox Microsoft.Edge" # Space-separated app IDs
-          WINGET_REPO_PATH: winget-pkgs
-          DEFATOM_REPO_PATH: ${{ github.workspace }}
-        run: |
-          import os
-          import shutil
-          from git import Repo
-
-          def find_latest_manifest(app_id, repo_path):
-              base_path = os.path.join(repo_path, "manifests", app_id[0].lower(), *app_id.split("."))
-              if not os.path.exists(base_path):
-                  print(f"Manifest path not found for {app_id}")
-                  return None
-              versions = sorted(os.listdir(base_path), key=lambda v: list(map(int, v.split("."))), reverse=True)
-              return os.path.join(base_path, versions[0]) if versions else None
-
-          def copy_to_defatom(app_id, latest_version_path, defatom_repo_path):
-              dest_path = os.path.join(defatom_repo_path, "manifests", app_id[0].lower(), *app_id.split("."))
-              if os.path.exists(dest_path):
-                  shutil.rmtree(dest_path)
-              os.makedirs(dest_path, exist_ok=True)
-              shutil.copytree(latest_version_path, dest_path, dirs_exist_ok=True)
-
-          # Environment variables
-          apps = os.environ["APPS"].split()
-          winget_repo_path = os.environ["WINGET_REPO_PATH"]
-          defatom_repo_path = os.environ["DEFATOM_REPO_PATH"]
-
-          for app in apps:
-              latest_version_path = find_latest_manifest(app, winget_repo_path)
-              if latest_version_path:
-                  copy_to_defatom(app, latest_version_path, defatom_repo_path)
-
-      - name: Commit and Push Changes
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          if git status --porcelain | grep .; then
-            git add .
-            git commit -m "Update manifests for specific apps"
-            git push
-          else
-            echo "No changes to commit."
+    - name: Commit and Push Changes
+      if: success()
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add manifests
+        git commit -m "Update latest manifests"
+        git push
