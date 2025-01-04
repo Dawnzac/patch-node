@@ -38,6 +38,7 @@ def get_latest_version_path(app_id):
         
         # Construct the raw URL for the manifest file
         app_path = f"{app_id[0].lower()}/{app_id.replace('.', '/')}"
+        #print(f"App path : {app_path}")
         manifest_file = f"{app_id}.installer.yaml"
         latest_version_url = f"{WINGET_REPO_RAW_URL}/{app_path}/{latest_version}/{manifest_file}"
         return latest_version_url
@@ -46,9 +47,7 @@ def get_latest_version_path(app_id):
         return None
 
 def download_manifest(manifest_url, app_id):
-    """
-    Download the manifest file for the latest version of the app.
-    """
+   
     app_download_folder = Path(DOWNLOAD_FOLDER) / app_id
     app_download_folder.mkdir(parents=True, exist_ok=True)
     
@@ -73,9 +72,7 @@ def download_manifest(manifest_url, app_id):
     return file_path
 
 def read_yaml_file(file_path):
-    """
-    Reads and parses the YAML file to ensure it is valid.
-    """
+
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
             data = yaml.safe_load(file)
