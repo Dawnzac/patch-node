@@ -2,9 +2,8 @@ import requests
 import yaml
 from pathlib import Path
 
-# Constants
 WINGET_REPO = "https://api.github.com/repos/microsoft/winget-pkgs/contents/manifests"
-RAW_REPO_BASE_URL = "https://raw.githubusercontent.com/microsoft/winget-pkgs/master/manifests"
+WINGET_REPO_RAW_URL = "https://raw.githubusercontent.com/microsoft/winget-pkgs/master/manifests"
 DOWNLOAD_FOLDER = "manifests"
 
 def get_latest_version_url(app_id):
@@ -13,31 +12,23 @@ def get_latest_version_url(app_id):
     """
     app_path = f"{app_id[0].lower()}/{app_id.replace('.', '/')}"
     api_url = f"{WINGET_REPO}/{app_path}"
+    manifest_url = f"{WINGET_REPO_RAW_URL}/{app_path}"
     
     print(f"Fetching manifest data from: {api_url}")
     response = requests.get(api_url)
-    
     if response.status_code == 200:
         data = response.json()
         # Look for the latest version folder (sorted by name)
-        versions = sorted(
-            [item['name'] for item in data if item['type'] == 'dir'], 
-            key=lambda x: tuple(map(int, x.split('.')))
-        )
+        versions = [item['name'] for item in data if item['type'] == 'dir']
         if not versions:
             print(f"No versions found for {app_id}")
             return None
-        
-        # Pick the latest version
-        latest_version = versions[-1]
-        manifest_url = f"{RAW_REPO_BASE_URL}/{app_path}/{latest_version}/{app_id}.installer.yaml"
-        print(f"Latest manifest URL for {app_id}: {manifest_url}")
-        return manifest_url
-    elif response.status_code == 404:
-        print(f"Application {app_id} not found in Winget repository.")
-        return None
+        latest_version = data[0]['name']
+        latest_url = f"{manifest_url}/{latest_version}/{app_id}.installer.yaml"
+        print(f"Latest manifest URL for {app_id}: {latest_url}")
+        return latest_url
     else:
-        print(f"Error fetching data: {response.status_code}")
+        print(f"Failed to fetch data from GitHub API. Status code: {response.status_code}")
         return None
 
 def download_manifest(manifest_url, app_id):
@@ -76,7 +67,7 @@ def read_yaml_file(file_path):
 
 def main():
     # List of apps to fetch
-    apps = ["Google.Chrome"]
+    apps = ["Google.Chrome", "Microsoft.Edge"]
 
     # Ensure download folder exists
     Path(DOWNLOAD_FOLDER).mkdir(exist_ok=True)
@@ -85,9 +76,9 @@ def main():
         manifest_url = get_latest_version_url(app_id)
         if manifest_url:
             downloaded_file = download_manifest(manifest_url, app_id)
-            if downloaded_file:
+            #if downloaded_file:
                 # Verify and read the downloaded YAML file
-                read_yaml_file(downloaded_file)
+                #read_yaml_file(downloaded_file)
 
 if __name__ == "__main__":
     main()

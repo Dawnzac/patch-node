@@ -10,20 +10,6 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Check if Winget is Preinstalled
-        run: |
-          if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
-            Write-Output "Winget is not installed. Downloading and installing..."
-            Invoke-WebRequest -Uri "https://aka.ms/getwinget" -OutFile "$env:TEMP\winget.msixbundle"
-            Add-AppxPackage -Path "$env:TEMP\winget.msixbundle"
-          } else {
-            Write-Output "Winget is available!"
-          }
-
-      - name: Fetch Latest Manifests
-        run: |
-          winget show Google.Chrome --versions
-
       - name: Checkout Repository
         uses: actions/checkout@v3
 
@@ -37,14 +23,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests pyyaml beautifulsoup4
 
-      - name: Install App Installer (Winget)
-        run: |
-          Invoke-WebRequest -Uri "https://aka.ms/getwinget" -OutFile "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-          Add-AppxPackage -Path "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-
       - name: Run Script to Fetch Winget Manifests
         run: |
-          python download_manifest4.py
+          python download_manifest7.py
 
       - name: Commit and Push Changes
         if: success()
