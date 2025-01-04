@@ -23,6 +23,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests pyyaml beautifulsoup4
 
+      - name: Install App Installer (Winget)
+        run: |
+          Invoke-WebRequest -Uri "https://aka.ms/getwinget" -OutFile "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+          Add-AppxPackage -Path "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+
       - name: Run Script to Fetch Winget Manifests
         run: |
           python download_manifest4.py
