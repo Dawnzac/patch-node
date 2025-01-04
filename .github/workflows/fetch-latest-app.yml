@@ -13,6 +13,15 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      - name: Set up Git identity
+        run: |
+          git config --global user.email "dawnzac88@gmail.com"
+          git config --global user.name "Zac"
+
+      - name: Set up Git credentials
+        run: |
+          git remote set-url origin https://github-actions:$(echo ${{ secrets.GH_TOKEN }})@github.com/Dawnzac/patch-node.git
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
