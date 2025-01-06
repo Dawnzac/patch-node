@@ -19,7 +19,7 @@ def get_latest_version_url(app_id):
     if response.status_code == 200:
         data = response.json()
         # Look for the latest version folder (sorted by name)
-        versions = [item['name'] for item in data if item['type'] == 'dir']
+        versions = [item['name'] for item in data if item['type'] == 'dir'] #this no good
         if not versions:
             print(f"No versions found for {app_id}")
             return None
