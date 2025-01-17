@@ -119,7 +119,7 @@ if __name__ == "__main__":
     parser = ArgumentParser(description="Agent script to send system reports to a server.")
     parser.add_argument("--server", required=True, help="The server URL to send reports to.")
     parser.add_argument("--token", required=True, help="The authentication token for server access.")
-    parser.add_argument("--interval", type=int, default=30, help="Report interval in seconds (default: 600s).")
+    parser.add_argument("--interval", type=int, default=600, help="Report interval in seconds (default: 600s).")
 
     args = parser.parse_args()
 
